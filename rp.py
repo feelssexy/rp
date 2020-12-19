@@ -145,7 +145,16 @@ def main():
         'navigator': 'firefox',
         'gl': 'MPV'
     }
-    filterThis = os.environ['filterThis'] # nah, you better not look at this
+    # ok fuck this os.environ... what absolute bullshit is this piece of junk
+    #filterThis = os.environ['filterThis'].split(';') # nah, you better not look at this
+
+    # quick and dirty
+    envPiss = {}
+    with open('.env', 'r') as f:
+        for line in f.readlines():
+            k, v = line.split('=')
+            filterThis = envPiss[k] = v
+    filterThis = envPiss['filterThis'].split(';')
 
     ## filterThis += [
     ##     '#welcome',
