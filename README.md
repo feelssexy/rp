@@ -20,6 +20,8 @@ It basically
     - playlist progress
 * show my current app by window name and title
     - also resolves the run command in my terminal using retarded commands
+* show for how long i have been stuck in one app
+* show when i lock my device
 * can leak private information
 * can leak me watching *interesting stuff*
 * can produce conversations when there's actually someone who looks at the RP
