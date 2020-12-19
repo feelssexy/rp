@@ -2,6 +2,8 @@
 
 funzies fact: i probably won't really maintain it
 
+> message me on discord (fs#4646) or telegram (https://t.me/ACraft84)... i'm probably bored enough to answer you
+
 ### reasons why i should probably not fill gh servers with this junk
 
 It basically
@@ -26,4 +28,5 @@ It basically
 * can leak me watching *interesting stuff*
 * can produce conversations when there's actually someone who looks at the RP
 
-> is there anything else i need to add here?
+
+##### is there anything else i need to add here?
