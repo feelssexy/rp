@@ -9,6 +9,11 @@ import subprocess
 import re
 # import sys
 
+# the script relies on these commands to be run at startup
+#mpd
+#xidlehook \
+#    --timer 180 'touch /tmp/.idle; echo user has gone idle' 'rm /tmp/.idle; echo user has come back from idle' &
+
 # https://stackoverflow.com/a/42404044
 def cur_win():
     #TODO: should probably rewrite this with `xdotool`
@@ -109,7 +114,7 @@ def get_music_status():
 
     m_song, playlist_status, mode_status = stdout.splitlines()
     # playing status
-    m = re.match(r'\[(?P<status>playing|paused)\]  ?(?P<plstatus>#\d+/\d+)   (?P<cmin>\d+):(?P<csec>\d+)/(?P<tmin>\d+):(?P<tsec>\d+) \(\d{1,3}%\)'.replace('/', r'\/'), playlist_status)
+    m = re.match(r'\[(?P<status>playing|paused)\]  ?(?P<plstatus>#\d+/\d+)   ?(?P<cmin>\d+):(?P<csec>\d+)/(?P<tmin>\d+):(?P<tsec>\d+) \(\d{1,3}%\)'.replace('/', r'\/'), playlist_status)
     if not m:
         print(playlist_status)
         return None, None, None, stdout
@@ -201,7 +206,8 @@ def main():
     RPC.connect()
 
     # it didnt error with `last_locked = None` not being present
-    last_window = last_title = last_music = last_locked = [None]
+    last_window = last_title = last_music = last_locked = last_idle = last_textInfo = [None]
+    t = idleTimer = int(time())
     hot_sex = 0
     while 1:
         hot_sex += 1
@@ -223,37 +229,57 @@ def main():
         locked = True if os.path.isfile('/tmp/.screenlock') else False
         music = get_music_status()
 
+        idle = os.path.exists('/tmp/.idle')
+
+        m_playing, m_leftToPlay, m_song, m_stdout = music
+        textInfo = [
+                (window.capitalize() + ': ' + title)[:128],
+                m_song[:128] if m_playing else "App has not been changed for"
+            ]
+        if idle:
+            if not m_playing:
+                #textInfo += ["I am currently idle w/ music"] # this would scroll one down, dynamic shit that might look cool
+                textInfo[1] = "Idle for:"
+            else:
+                #textInfo[0] = "I have been idle for " + (timedelta(seconds=int(time()) - idleTimer).total_seconds//60)%60 + 'm'
+                textInfo[0] = "Idle for " + str(((int(time()) - idleTimer)//60)%60) + 'mins'
+                #timedelta(minutes=int(m['tmin']),
+
+
         checks = (
-            title != last_title,
-            window != last_window,
+            textInfo != last_textInfo,
             locked != last_locked,
             music[0] != last_music[0], # ignore the number value
-            music[2:] != last_music[2:]
+            music[2:] != last_music[2:],
+            idle != last_idle
         )
 
         if any(checks):
             #print(checks)
             t = int(time()) if window != last_window else None if locked else t
-            m_playing, m_leftToPlay, m_song, m_stdout = music
+            idleTimer = int(time()) - 180 if idle and not last_idle else idleTimer
             m_stdout = "*Note: Try listening using `d.fsm` on DustOut Bot " + m_stdout
-            if len(m_stdout) >= 128:
-                pass
-                #print('len of `m_stdout`', len(m_stdout))
             m_stdout = m_stdout[:127]#.encode().decode('ASCII')
-            print('updating rp to', window, title, locked, m_playing)
+            print('updating rp to', window, title, locked, m_playing, idle)
+            #TODO: rewrite this code and remove the ternary operators for the code to be more extensible
             RPC.update(
-                    details=(window.capitalize() + ': ' + title)[:128],
-                    state=m_song[:128] if m_playing else "App has not been changed for",
-                    start=t,
+                    details=textInfo[-2],
+                    state=textInfo[-1],
+                    start=t if not idle else idleTimer,
+                    #end=m_leftToPlay if m_playing and not idle else None,
                     end=m_leftToPlay if m_playing else None,
                     large_image='sticker_nu5_kzba',
-                    small_image='locked' if locked else 'music_playing' if m_playing else None,
-                    small_text='Workspace is currently locked' if locked else m_stdout if m_playing else None
+                    small_image='locked' if locked else 'zzz_pink_squared2' if idle else 'music_playing' if m_playing else None,
+                    #small_text='Workspace is currently locked' if locked else 'ik this icon sucks, suggest me a better one lol' if idle else m_stdout if m_playing else None,
+                    small_text='Workspace is currently locked' if locked else m_stdout if m_playing else None,
+                    large_text='The very messy code I use for this custom RP can be found here github.com/feelssexy/rp'
                 )
-        last_window = window
-        last_title = title
+        #last_window = window
+        #last_title = title
+        last_textInfo = textInfo
         last_locked = locked
         last_music = music
+        last_idle = idle
 
         sleep(4)
 
