@@ -234,7 +234,8 @@ def main():
         m_playing, m_leftToPlay, m_song, m_stdout = music
         textInfo = [
                 (window.capitalize() + ': ' + title)[:128],
-                m_song[:128] if m_playing else "App has not been changed for"
+                #m_song[:128] if m_playing else "App has not been changed for"
+                m_song[:128] if m_playing else "App unchanged for"
             ]
         if idle:
             if not m_playing:
@@ -257,7 +258,7 @@ def main():
         if any(checks):
             #print(checks)
             t = int(time()) if window != last_window else None if locked else t
-            idleTimer = int(time()) - 180 if idle and not last_idle else idleTimer
+            idleTimer = int(time()) - 120 if idle and not last_idle else idleTimer
             m_stdout = "*Note: Try listening using `d.fsm` on DustOut Bot " + m_stdout
             m_stdout = m_stdout[:127]#.encode().decode('ASCII')
             print('updating rp to', window, title, locked, m_playing, idle)
